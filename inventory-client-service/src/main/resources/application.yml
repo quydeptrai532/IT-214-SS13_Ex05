@@ -1,0 +1,42 @@
+server:
+  port: 8094
+spring:
+  application:
+    name: inventory-client-service
+
+inventory:
+  base-url: http://localhost:8095      # inventory-service that
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventoryService:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 6
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 2
+        registerHealthIndicator: true
+        automaticTransitionFromOpenToHalfOpenEnabled: false
+
+# ★ Bat phoi bay day du cac endpoint cua Actuator de Gan len Grafana
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers,circuitbreakerevents,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: inventory-client-service
+  health:
+    circuitbreakers:
+      enabled: true
+
+logging:
+  level:
+    com.storex.client: DEBUG
+    io.github.resilience4j: INFO

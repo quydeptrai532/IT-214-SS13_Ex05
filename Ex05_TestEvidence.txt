@@ -1,0 +1,29 @@
+=== KET QUA CHAY TEST - Session13 / Bai 5 (CAPSTONE) ===
+Test class: InventoryClientCapstoneTest   |   tests=3  failures=0  errors=0
+
+--- 1) Goi thanh cong qua WebClient (non-blocking) ---
+>>> [SUCCESS] Ket qua tu inventory-service:
+    InventoryDto(sku=SKU-1, available=true, quantity=10, source=INVENTORY-SERVICE)
+
+--- 2) inventory-service loi (500) -> Circuit Breaker OPEN + tra Fallback ---
+>>> [FALLBACK] Khong goi duoc inventory-service (InternalServerError). Tra du lieu mac dinh.
+>>> [FALLBACK] Khong goi duoc inventory-service (CallNotPermittedException). Tra du lieu mac dinh.
+>>> [FALLBACK] Ket qua cuoi=InventoryDto(sku=SKU-2, available=false, quantity=0, source=FALLBACK)
+    | CB state=OPEN | failureRate=100.0 | failedCalls=3
+
+    => Sau khi mach OPEN, cac request tiep theo bi chan ngay (CallNotPermittedException)
+       va tra ve du lieu FALLBACK -> khong lam sap he thong.
+
+--- 3) Actuator metric hien thi dung trang thai (checklist) ---
+>>> [ACTUATOR] state=closed -> {"availableTags":[...],"description":"The states of the circuit breaker",
+        "measurements":[{"statistic":"VALUE","value":1.0}],"name":"resilience4j.circuitbreaker.state"}
+>>> [ACTUATOR] state=open   -> {...,"measurements":[{"statistic":"VALUE","value":0.0}],
+        "name":"resilience4j.circuitbreaker.state"}
+
+    => Khi mach CLOSED: tag state=closed -> VALUE = 1.0 ; state=open -> VALUE = 0.0
+       Dung nhu yeu cau de gan len Grafana qua /actuator/metrics.
+
+--- 4) REQ: khong co .block() trong ma nguon ---
+Grep toan bo src/main: khong tim thay .block() / .toFuture() / @CircuitBreaker
+=> luong Reactive duoc giu nguyen 100%, Circuit Breaker gan qua
+   .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
