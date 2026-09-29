@@ -57,3 +57,4 @@ curl "http://localhost:8094/api/client/inventory/check?sku=SKU-1"
 > `resilience4j-reactor` (chứa `CircuitBreakerOperator`) — starter không kéo theo đủ.
 >
 > Mã nguồn **không chứa `.block()`** — đã kiểm tra bằng grep toàn bộ `src/main`.
+a
